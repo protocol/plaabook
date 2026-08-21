@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@source "../../pl-design-system/components";
+@import "../../pl-design-system/tokens/tokens.css";
+@import "../../pl-design-system/tokens/tailwind-theme.css";
