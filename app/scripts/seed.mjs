@@ -32,24 +32,26 @@ for (const [slug, label] of TAGS) {
 
 // --- Collections (PRD F-2, seeded at launch) /* pending Camille review */ ---
 const COLLECTIONS = [
-  ['agent-skills-we-actually-use', 'Agent Skills we actually use', 'Skills members run day to day — vetted by use, not by promise.', null, 0],
-  ['newsletters-worth-the-inbox-space', 'Newsletters worth the inbox space', 'The short list of newsletters members actually read to the end.', null, 1],
-  ['infra-reading-start-here', 'Infra reading — start here', 'The starting stack for getting productive with AI inside PL Infra.', null, 2],
-  ['asked-for-not-yet-found', 'Asked for, not yet found', 'Open requests from members — fulfil one and close the loop.', { type: 'open_requests' }, 3],
+  ['newsletters-worth-the-inbox-space', 'Newsletters & Creators worth following', 'Newsletters, video channels, TikToks — the people and feeds members actually follow.', null, 0],
+  ['infra-reading-start-here', 'Posts and Reading', 'Short posts, links, and longer reads from members — the internal micro-blog of what is worth your time.', null, 1],
+  ['asked-for-not-yet-found', 'Asked for, not yet found', 'Open requests from members — fulfil one and close the loop.', { type: 'open_requests' }, 2],
 ];
 for (const [slug, title, description, rule, sort] of COLLECTIONS) {
   await client.query(
     `INSERT INTO collections (slug, title, description, auto_populate_rule, sort_order)
-     VALUES ($1, $2, $3, $4, $5) ON CONFLICT (slug) DO NOTHING`,
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (slug) DO UPDATE SET title = $2, description = $3, sort_order = $5`,
     [slug, title, description, rule ? JSON.stringify(rule) : null, sort]
   );
 }
+// Removed for now (existing DBs included); resources keep living outside it.
+await client.query(`DELETE FROM collections WHERE slug = 'agent-skills-we-actually-use'`);
 
 // --- Seeded resources (32) ---
 // [type, title, url, why, tags[], collection|null]
 const SEED = [
   ['link', 'Anthropic: Building Effective Agents', 'https://www.anthropic.com/research/building-effective-agents', 'The clearest mental model for when to use workflows vs agents — saves weeks of over-engineering.', ['guides', 'agent-skills'], 'infra-reading-start-here'],
-  ['link', 'Claude Docs: Agent Skills', 'https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview', 'Canonical reference for how SKILL.md files work — read before writing your first Skill.', ['agent-skills', 'guides'], 'agent-skills-we-actually-use'],
+  ['link', 'Claude Docs: Agent Skills', 'https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview', 'Canonical reference for how SKILL.md files work — read before writing your first Skill.', ['agent-skills', 'guides'], 'infra-reading-start-here'],
   ['link', 'Anthropic Prompt Engineering Overview', 'https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview', 'The official prompt-engineering guide; the examples map directly onto our internal use cases.', ['prompts', 'guides'], 'infra-reading-start-here'],
   ['link', 'Anthropic Cookbook (GitHub)', 'https://github.com/anthropics/anthropic-cookbook', 'Working code for RAG, tool use, and evals — copy-paste starting points that actually run.', ['guides', 'automation'], null],
   ['link', 'Model Context Protocol docs', 'https://modelcontextprotocol.io/introduction', 'MCP is how our internal tools connect to Claude — this is the shortest path to understanding it.', ['automation', 'guides'], 'infra-reading-start-here'],
@@ -59,7 +61,7 @@ const SEED = [
   ['link', 'Ethan Mollick: One Useful Thing', 'https://www.oneusefulthing.org/', 'Practical, hype-free takes on using AI at work — the best "convince a skeptical colleague" resource.', ['creators', 'guides'], null],
   ['link', 'Simon Willison: LLM CLI tool', 'https://llm.datasette.io/', 'A CLI for piping anything through an LLM — the fastest way to script one-off automations.', ['automation', 'data'], null],
   ['link', 'Hamel Husain: Your AI Product Needs Evals', 'https://hamel.dev/blog/posts/evals/', 'The single best explanation of why evals matter and how to start without a framework.', ['research', 'guides'], null],
-  ['link', 'Anthropic: Claude Code Best Practices', 'https://www.anthropic.com/engineering/claude-code-best-practices', 'Concrete patterns for agentic coding sessions — directly applicable to our automation work.', ['agent-skills', 'automation'], 'agent-skills-we-actually-use'],
+  ['link', 'Anthropic: Claude Code Best Practices', 'https://www.anthropic.com/engineering/claude-code-best-practices', 'Concrete patterns for agentic coding sessions — directly applicable to our automation work.', ['agent-skills', 'automation'], 'infra-reading-start-here'],
   ['link', 'OWASP Top 10 for LLM Applications', 'https://owasp.org/www-project-top-10-for-large-language-model-applications/', 'The checklist we should run every internal AI tool against before it touches real data.', ['security', 'guides'], null],
   ['link', 'NIST AI Risk Management Framework', 'https://www.nist.gov/itl/ai-risk-management-framework', 'The reference framework legal keeps citing — skim the core functions before compliance reviews.', ['legal', 'security'], null],
   ['link', 'EU AI Act explorer', 'https://artificialintelligenceact.eu/', 'Searchable text of the AI Act with plain-language summaries — faster than reading the regulation.', ['legal', 'research'], null],
@@ -75,7 +77,7 @@ const SEED = [
   ['creator', 'Andrej Karpathy (YouTube)', 'https://www.youtube.com/@AndrejKarpathy', 'The "intro to LLMs" videos are the best 1-hour onboarding for anyone new to how these models work.', ['creators', 'guides'], 'infra-reading-start-here'],
   ['creator', 'Lenny\u2019s Podcast — AI episodes', 'https://www.lennysnewsletter.com/podcast', 'Product-side view of AI adoption; the operator interviews translate well to our internal tooling.', ['creators', 'ops'], null],
   ['creator', 'Matt Pocock (TypeScript + AI tooling)', 'https://www.mattpocock.com/', 'Short, sharp tutorials on typed AI SDK usage — great for anyone scripting against Claude.', ['creators', 'automation'], null],
-  ['link', 'Awesome Claude Skills (community list)', 'https://github.com/anthropics/skills', 'Anthropic\u2019s public Skill examples — steal the frontmatter and structure for internal Skills.', ['agent-skills', 'guides'], 'agent-skills-we-actually-use'],
+  ['link', 'Awesome Claude Skills (community list)', 'https://github.com/anthropics/skills', 'Anthropic\u2019s public Skill examples — steal the frontmatter and structure for internal Skills.', ['agent-skills', 'guides'], 'infra-reading-start-here'],
   ['link', 'Finance: SEC EDGAR full-text search', 'https://efts.sec.gov/LATEST/search-index?q=', 'Free full-text search over filings — pairs well with an LLM summarizer for diligence.', ['finance', 'data'], null],
   ['link', 'CSV, Excel and the LLM: data-cleaning patterns (Simon Willison)', 'https://simonwillison.net/tags/data-journalism/', 'Reusable patterns for cleaning messy spreadsheets with LLM help — ops folks, start here.', ['data', 'ops'], null],
   ['link', 'Prompt injection primer (Simon Willison)', 'https://simonwillison.net/series/prompt-injection/', 'The canonical explainer on prompt injection — required reading before wiring LLMs to internal data.', ['security', 'research'], null],

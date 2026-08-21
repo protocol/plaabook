@@ -37,7 +37,6 @@ import {
 /* pending Camille review — tab labels (design, verbatim) */
 export const TYPE_TABS: { value: string; label: string }[] = [
   { value: 'all', label: 'Everything' },
-  { value: 'skill', label: 'Skills' },
   { value: 'link', label: 'Links' },
   { value: 'file', label: 'Docs' },
   { value: 'reading', label: 'Reading' },

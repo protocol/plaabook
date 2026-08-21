@@ -114,8 +114,8 @@ const FRESH: SubmitState = {
 const TYPE_TILES: { key: TypeKey; label: string; hint: string }[] = [
   { key: 'link', label: 'A link', hint: 'Article, doc, repo — anything with a URL' },
   { key: 'file', label: 'A file', hint: 'PDF, Markdown, docx, CSV, zip' },
-  { key: 'skill', label: 'A Skill', hint: 'SKILL.md or a bundle — frontmatter is parsed' },
-  { key: 'newsletter', label: 'A newsletter or creator', hint: 'Someone worth following' },
+  /* Skill submissions hidden for now — backend support unchanged. */
+  { key: 'newsletter', label: 'A newsletter or creator', hint: 'A newsletter, video channel, or TikTok — someone worth following' /* pending Camille review */ },
   { key: 'request', label: 'A request', hint: 'Something that should exist and does not' },
 ];
 
