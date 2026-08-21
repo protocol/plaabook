@@ -51,6 +51,22 @@ describe('POST /api/resources — F-1 submit', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rejects sharing beyond PL Infra during the PL Infra-only phase', async () => {
+    const res = await POST(
+      jsonRequest(URL_BASE, 'POST', {
+        type: 'link',
+        title: 'Too-wide audience',
+        why: 'Verifies the current audience boundary',
+        url: 'https://example.com/wide-audience',
+        visibility: 'plaa_members',
+      })
+    );
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      error: 'Resources can currently only be shared with PL Infra members.',
+    });
+  });
+
   it('rejects file submission without confidentiality ack with 400 (AC-1.7)', async () => {
     const res = await POST(
       jsonRequest(URL_BASE, 'POST', {

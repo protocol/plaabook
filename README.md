@@ -20,9 +20,10 @@ the PL Design System, for deployment to LabOS. See the full product spec in
 - **Resource detail** (F-3) — authenticated file/Skill downloads, read-only
   SKILL.md viewer with copyable install path, single "Useful" upvote
   (recognition only — structurally severed from the points pipeline).
-- **Visibility scoping** (F-4) — `pl_infra` / `plaa_members`, enforced
-  server-side in shared query middleware on every read path; out-of-scope
-  access returns 404 and is audit-logged; fails closed.
+- **Visibility scoping** (F-4) — submissions are currently fixed to `pl_infra`
+  (enforced in both UI and API). The schema retains the future `plaa_members`
+  scope; every read is filtered server-side, out-of-scope access returns 404
+  and is audit-logged, and membership resolution fails closed.
 - **Requests** (F-5) — "does anyone have…?" posts; fulfilment links a resource,
   notifies the requester, and credits the fulfiller.
 - **Contribution webhook** (F-6) — transactional outbox emitting

@@ -10,11 +10,14 @@ import {
   PageHeader,
   SearchInput,
   ListGrid,
-  EntityCard,
   EmptyState,
   SkeletonCard,
   Button,
   Alert,
+  Badge,
+  Card,
+  IconTile,
+  cn,
   FilterPanel,
   FilterSection,
   CheckboxList,
@@ -126,6 +129,7 @@ function BrowseInner() {
 
   const hasFilters = Boolean(q || type || tag || collection);
   const emptyCorpus = !loading && !degraded && items.length === 0 && !hasFilters;
+  const selectedCollection = collections.find((c) => c.slug === collection);
 
   const filterRail = (
     <FilterPanel
@@ -188,21 +192,93 @@ function BrowseInner() {
       )}
 
       {collections.length > 0 && (
-        <section id="collections" className="mb-6">
-          <h2 className="mb-3 text-lg font-semibold tracking-title text-primary">Collections</h2>
-          <ListGrid>
-            {collections.map((c) => (
-              <EntityCard
-                key={c.slug}
-                title={c.title}
-                href={`/?collection=${encodeURIComponent(c.slug)}`}
-                description={c.description ?? undefined}
-                badge={typeof c.resourceCount === 'number' ? `${c.resourceCount} resources` : undefined}
-              />
-            ))}
-          </ListGrid>
+        <section id="collections" className="mb-8" aria-labelledby="collections-heading">
+          <Card className="border-action-success bg-action-success-light">
+            <div className="mb-4 flex items-start gap-3">
+              <IconTile name="folder" tone="success" size="md" />
+              <div>
+                {/* pending Camille review */}
+                <h2 id="collections-heading" className="text-lg font-semibold tracking-title text-primary">
+                  Filter by collection
+                </h2>
+                <p className="mt-1 text-sm tracking-body text-secondary">
+                  Choose a collection to update the resources shown below. Choose it again, or select All resources, to reset.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <Button
+                tone="secondary"
+                appearance="light"
+                aria-pressed={!collection}
+                onClick={() => setParam('collection', '')}
+                className={cn(
+                  'h-auto min-h-24 w-full items-start justify-start whitespace-normal p-4 text-left',
+                  !collection && 'ring-2 ring-border-strong'
+                )}
+                iconStart={<IconTile name="book" tone="neutral" size="sm" />}
+              >
+                <span className="flex min-w-0 flex-1 flex-col items-start gap-2">
+                  <span className="whitespace-normal text-md font-semibold leading-snug text-primary">All resources</span>
+                  <span className="whitespace-normal text-xs font-normal leading-snug text-secondary">
+                    Browse everything the network has shared.
+                  </span>
+                </span>
+              </Button>
+
+              {collections.map((c) => {
+                const selected = c.slug === collection;
+                return (
+                  <Button
+                    key={c.slug}
+                    tone="success"
+                    appearance="light"
+                    aria-pressed={selected}
+                    onClick={() => setParam('collection', selected ? '' : c.slug)}
+                    className={cn(
+                      'h-auto min-h-24 w-full items-start justify-start whitespace-normal p-4 text-left',
+                      selected && 'ring-2 ring-action-success'
+                    )}
+                    iconStart={<IconTile name="folder" tone="success" size="sm" />}
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col items-start gap-2">
+                      <span className="whitespace-normal text-md font-semibold leading-snug text-primary">{c.title}</span>
+                      {c.description && (
+                        <span className="line-clamp-2 whitespace-normal text-xs font-normal leading-snug text-secondary">
+                          {c.description}
+                        </span>
+                      )}
+                      {typeof c.resourceCount === 'number' && (
+                        <Badge tone="success">{c.resourceCount} resources</Badge>
+                      )}
+                    </span>
+                  </Button>
+                );
+              })}
+            </div>
+          </Card>
         </section>
       )}
+
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          {/* pending Camille review */}
+          <h2 className="text-lg font-semibold tracking-title text-primary">
+            {selectedCollection ? selectedCollection.title : 'All resources'}
+          </h2>
+          <p className="mt-1 text-sm tracking-body text-secondary">
+            {selectedCollection
+              ? 'Showing resources from this collection. Search and filters narrow these results further.'
+              : 'Search everything shared with PL Infra, or choose a collection above.'}
+          </p>
+        </div>
+        {selectedCollection && (
+          <Button size="sm" variant="secondary" onClick={() => setParam('collection', '')}>
+            Show all resources
+          </Button>
+        )}
+      </div>
 
       <SearchInput
         value={input}

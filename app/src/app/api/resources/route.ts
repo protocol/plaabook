@@ -15,7 +15,7 @@ const RESOURCE_TYPES = ['link', 'file', 'skill', 'newsletter', 'creator', 'reque
 type ResourceType = (typeof RESOURCE_TYPES)[number];
 const URL_TYPES: ResourceType[] = ['link', 'newsletter', 'creator'];
 const UPLOAD_TYPES: ResourceType[] = ['file', 'skill'];
-const SCOPES: VisibilityScope[] = ['pl_infra', 'plaa_members'];
+const SUBMISSION_SCOPE: VisibilityScope = 'pl_infra';
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = ['pdf', 'md', 'txt', 'docx', 'csv', 'zip'];
@@ -80,8 +80,11 @@ async function readSubmitInput(req: Request): Promise<SubmitInput | Response> {
     return bad('Please add one line on why this is worth someone\u2019s time (up to 200 characters).');
   }
 
-  const visibility = (raw.visibility as VisibilityScope) || 'pl_infra';
-  if (!SCOPES.includes(visibility)) return bad('Unknown visibility scope.');
+  const visibility = (raw.visibility as VisibilityScope) || SUBMISSION_SCOPE;
+  if (visibility !== SUBMISSION_SCOPE) {
+    /* pending Camille review — phase 1 is PL Infra-only. */
+    return bad('Resources can currently only be shared with PL Infra members.');
+  }
 
   const tags = Array.isArray(raw.tags) ? (raw.tags as string[]).map(String) : [];
   const url = typeof raw.url === 'string' && raw.url.trim() ? raw.url.trim() : null;

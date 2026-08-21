@@ -3,7 +3,7 @@
 // required why-line, confidentiality nudge gating every upload path.
 // Displays NO points and no review outcome — receipt says "Sent for review" only.
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import NextLink from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -18,7 +18,6 @@ import {
   Tag,
   TagList,
   Alert,
-  Select,
   Badge,
 } from '../../../pl-design-system/components';
 import { AppShell } from '@/components/AppShell';
@@ -106,7 +105,8 @@ function SubmitInner() {
     if (prefillType === 'request') {
       base = { ...base, type: 'request', title: prefillQ ?? base.title };
     }
-    setDraft(base);
+    // Phase 1 is PL Infra-only. Ignore any wider audience saved by an older draft.
+    setDraft({ ...base, visibility: 'pl_infra' });
     setRestored(true);
   }, [params]);
 
@@ -224,7 +224,7 @@ function SubmitInner() {
       form.set('type', draft.type);
       form.set('title', draft.title.trim());
       form.set('why', why);
-      form.set('visibility', draft.visibility || 'pl_infra');
+      form.set('visibility', 'pl_infra');
       form.set('tags', JSON.stringify(draft.tags));
       form.set('confidentialityAck', 'true');
       form.set('file', file);
@@ -236,7 +236,7 @@ function SubmitInner() {
         description: draft.description.trim() || undefined,
         url: isUrlType ? draft.url.trim() : undefined,
         why,
-        visibility: draft.visibility || 'pl_infra',
+        visibility: 'pl_infra',
         tags: draft.tags,
         duplicate_override: duplicateOverride || undefined,
         fulfills_request_id: fulfillsRequestId || undefined,
@@ -251,7 +251,7 @@ function SubmitInner() {
     }
     const id = result.data?.id ?? result.data?.resource?.id ?? '';
     trackEvent('submit_completed', { ms: Date.now() - openedAt.current, type: draft.type });
-    setReceipt({ id, title: draft.title.trim(), visibility: draft.visibility || 'pl_infra', type: draft.type });
+    setReceipt({ id, title: draft.title.trim(), visibility: 'pl_infra', type: draft.type });
     try {
       localStorage.removeItem(DRAFT_KEY);
     } catch {
@@ -269,15 +269,6 @@ function SubmitInner() {
     setMetaNote('');
     openedAt.current = Date.now();
   }, []);
-
-  const visibilityOptions = useMemo(
-    () => [
-      /* pending Camille review — plain-language audience labels (AC-4.3) */
-      { value: 'pl_infra', label: 'PL Infra members' },
-      { value: 'plaa_members', label: 'All PLAA members' },
-    ],
-    []
-  );
 
   if (receipt) {
     return (
@@ -446,17 +437,11 @@ function SubmitInner() {
             />
           </Field>
 
-          <Field
-            label="Who can see this?"
-            required
-            /* pending Camille review */
-            helper="Choose the audience deliberately — this is who your post is visible to."
-          >
-            <Select
-              options={visibilityOptions}
-              value={draft.visibility || 'pl_infra'}
-              onChange={(v) => set('visibility', v as Draft['visibility'])}
-            />
+          <Field label="Who can see this?" required>
+            {/* pending Camille review — phase 1 has one fixed audience. */}
+            <Alert tone="success" title="PL Infra members">
+              This app is currently available only to PL Infra, so everything shared here uses that audience.
+            </Alert>
           </Field>
 
           <Field label="Tags" optional helper="Pick from the shared vocabulary.">
