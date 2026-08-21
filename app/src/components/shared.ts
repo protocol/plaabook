@@ -8,6 +8,8 @@ export interface ResourceSummary {
   type: 'link' | 'file' | 'skill' | 'newsletter' | 'creator' | 'request';
   title: string;
   why: string;
+  visibility?: 'pl_infra' | 'plaa_members';
+  submitterMemberId?: string;
   submitterDisplayName: string;
   submitterAvatarUrl?: string | null;
   requestStatus?: 'open' | 'fulfilled' | 'withdrawn' | null;
@@ -24,6 +26,7 @@ export interface ResourceDetail extends ResourceSummary {
   skillName?: string | null;
   skillDescription?: string | null;
   skillMd?: string | null;
+  extractedPreview?: string | null;
   fileName?: string | null;
   fileMime?: string | null;
   fileSizeBytes?: number | null;
@@ -42,6 +45,53 @@ export interface CollectionRow {
   title: string;
   description?: string | null;
   resourceCount?: number;
+  curatorName?: string | null;
+  preview?: string[];
+  autoPopulated?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Design type map — label, icon glyph, tile tint, badge tone per post type.
+// Semantic token classes only (design contract).
+
+export type TypeKey = ResourceSummary['type'];
+
+export interface TypeMeta {
+  label: string;
+  icon: 'globe' | 'cube' | 'diamond' | 'calendar' | 'user-circle' | 'search';
+  tile: string; // tinted icon-tile classes
+  badge: 'neutral' | 'info' | 'success' | 'warning';
+}
+
+/* pending Camille review — member-facing type labels */
+export const TYPE_META: Record<TypeKey, TypeMeta> = {
+  link: { label: 'Link', icon: 'globe', tile: 'bg-action-neutral-light text-secondary', badge: 'info' },
+  file: { label: 'Doc', icon: 'cube', tile: 'bg-action-neutral-light text-secondary', badge: 'neutral' },
+  skill: { label: 'Skill', icon: 'diamond', tile: 'bg-selected text-brand', badge: 'info' },
+  newsletter: { label: 'Newsletter', icon: 'calendar', tile: 'bg-action-success-light text-trend-up', badge: 'success' },
+  creator: { label: 'Creator', icon: 'user-circle', tile: 'bg-action-success-light text-trend-up', badge: 'success' },
+  request: { label: 'Request', icon: 'search', tile: 'bg-action-warning-light text-action-warning-fg', badge: 'warning' },
+};
+
+/* pending Camille review — short visibility labels under the vote pill */
+export const VIS_SHORT: Record<'pl_infra' | 'plaa_members', string> = {
+  pl_infra: 'PL Infra',
+  plaa_members: 'All PLAA members',
+};
+
+/** Relative "when" the way the design writes it: "3 days ago" → "in July". */
+export function fmtWhen(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const days = Math.floor((Date.now() - then) / 86400000);
+  if (days < 1) return 'just now';
+  if (days === 1) return 'yesterday';
+  if (days < 7) return `${days} days ago`;
+  if (days < 35) {
+    const w = Math.round(days / 7);
+    return w === 1 ? '1 week ago' : `${w} weeks ago`;
+  }
+  return `in ${new Date(iso).toLocaleDateString('en-US', { month: 'long' })}`;
 }
 
 /* pending Camille review — all labels below are member-facing */

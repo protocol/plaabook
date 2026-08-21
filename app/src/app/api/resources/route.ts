@@ -269,7 +269,10 @@ export async function GET(req: Request): Promise<Response> {
     params.push(q);
     where.push(`r.search_vector @@ websearch_to_tsquery('english', $${params.length})`);
   }
-  if (type && RESOURCE_TYPES.includes(type as ResourceType)) {
+  if (type === 'reading') {
+    // "Reading" tab groups newsletters + creators (design contract).
+    where.push(`r.type IN ('newsletter'::resource_type, 'creator'::resource_type)`);
+  } else if (type && RESOURCE_TYPES.includes(type as ResourceType)) {
     params.push(type);
     where.push(`r.type = $${params.length}::resource_type`);
   }
@@ -287,6 +290,11 @@ export async function GET(req: Request): Promise<Response> {
   if (status && ['open', 'fulfilled'].includes(status)) {
     params.push(status);
     where.push(`r.request_status = $${params.length}::request_status`);
+  }
+  // "Found useful" — viewer's own upvotes only. Never someone else's (no PII in URLs).
+  if (urlObj.searchParams.get('upvotedBy') === 'me') {
+    params.push(member.id);
+    where.push(`EXISTS (SELECT 1 FROM upvotes uv WHERE uv.resource_id = r.id AND uv.member_id = $${params.length})`);
   }
   if (collection) {
     // Curated membership OR the auto-populated open-requests collection.
@@ -326,8 +334,8 @@ export async function GET(req: Request): Promise<Response> {
   const viewerParam = params.length;
 
   const sql = `
-    SELECT r.id, r.type, r.title, r.why, r.submitter_display_name, r.submitter_avatar_url,
-           r.created_at, r.upvote_count, r.request_status, r.fulfilled_by_resource_id,
+    SELECT r.id, r.type, r.title, r.why, r.submitter_member_id, r.submitter_display_name, r.submitter_avatar_url,
+           r.created_at, r.upvote_count, r.visibility, r.request_status, r.fulfilled_by_resource_id,
            EXISTS (SELECT 1 FROM upvotes u WHERE u.resource_id = r.id AND u.member_id = $${viewerParam}) AS viewer_has_upvoted,
            COALESCE(
              (SELECT array_agg(t.slug ORDER BY t.slug) FROM resource_tags rt JOIN tags t ON t.id = rt.tag_id
@@ -349,8 +357,8 @@ export async function GET(req: Request): Promise<Response> {
     const fb = scopeFilterSql(scopes, 0, 'r');
     fallbackParams.push(...fb.params, member.id);
     ({ rows } = await query(
-      `SELECT r.id, r.type, r.title, r.why, r.submitter_display_name, r.submitter_avatar_url,
-              r.created_at, r.upvote_count, r.request_status, r.fulfilled_by_resource_id,
+      `SELECT r.id, r.type, r.title, r.why, r.submitter_member_id, r.submitter_display_name, r.submitter_avatar_url,
+              r.created_at, r.upvote_count, r.visibility, r.request_status, r.fulfilled_by_resource_id,
               EXISTS (SELECT 1 FROM upvotes u WHERE u.resource_id = r.id AND u.member_id = $2) AS viewer_has_upvoted,
               '{}'::text[] AS tags
        FROM resources r WHERE ${fb.sql}
@@ -367,10 +375,12 @@ export async function GET(req: Request): Promise<Response> {
     title: r.title,
     why: r.why,
     tags: r.tags,
+    submitterMemberId: r.submitter_member_id, // opaque id — profile routing only
     submitterDisplayName: r.submitter_display_name,
     submitterAvatarUrl: r.submitter_avatar_url,
     createdAt: new Date(r.created_at).toISOString(),
     upvoteCount: r.upvote_count,
+    visibility: r.visibility,
     requestStatus: r.request_status,
     fulfilledByResourceId: r.fulfilled_by_resource_id,
     viewerHasUpvoted: r.viewer_has_upvoted,

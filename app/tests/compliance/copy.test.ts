@@ -40,7 +40,8 @@ describe('compliance — copy', () => {
   it('submit flow uses exactly "Sent for review" as the status copy', () => {
     const route = readFileSync(join(appRoot, 'src/app/api/resources/route.ts'), 'utf8');
     expect(route).toContain("'Sent for review'");
-    const page = readFileSync(join(appRoot, 'src/app/submit/page.tsx'), 'utf8');
+    // The submit UI is the modal component (opened by /submit and every Share button).
+    const page = readFileSync(join(appRoot, 'src/components/SubmitModal.tsx'), 'utf8');
     expect(page).toContain('Sent for review');
     // never anything stronger
     expect(/collected \d+|points? (awarded|credited)/i.test(route + page)).toBe(false);

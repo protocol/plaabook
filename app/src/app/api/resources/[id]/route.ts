@@ -21,6 +21,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
     `SELECT r.id, r.type, r.title, r.why, r.url, r.file_path, r.file_size_bytes, r.file_mime,
             r.skill_name, r.skill_description,
             CASE WHEN r.type = 'skill' THEN r.extracted_text END AS skill_md,
+            CASE WHEN r.type = 'file' THEN left(r.extracted_text, 600) END AS extracted_preview,
             r.submitter_member_id, r.submitter_display_name, r.submitter_avatar_url,
             r.visibility, r.request_status, r.fulfilled_by_resource_id, r.fulfilled_at,
             r.upvote_count, r.view_count, r.download_count, r.flagged_broken_at, r.created_at,
@@ -54,6 +55,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
     skillName: r.skill_name,
     skillDescription: r.skill_description,
     skillMd: r.skill_md,
+    extractedPreview: r.extracted_preview,
     submitterMemberId: r.submitter_member_id, // opaque id (for author-only UI affordances)
     submitterDisplayName: r.submitter_display_name,
     submitterAvatarUrl: r.submitter_avatar_url,

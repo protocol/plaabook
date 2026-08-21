@@ -10,6 +10,7 @@ export async function GET(req: Request): Promise<Response> {
   if (!member) return Response.json({ member: null });
   return Response.json({
     member: {
+      id: member.id, // opaque LabOS uid — used for "Shared by you" routing only
       displayName: member.displayName,
       avatarUrl: member.avatarUrl,
       isAdmin: isAdmin(member.id),

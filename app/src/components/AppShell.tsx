@@ -1,103 +1,182 @@
 'use client';
-// Directory-style shell: top navbar, left-rail section nav, footer.
+// Shell: slim top bar (LabOS Directory nav is a placeholder — deliberately not
+// reproduced) + the design's left rail (Browse / Yours groups with live counts).
 // Snapshot status bar deliberately OMITTED — this app surfaces no points (PRD §4.2).
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import NextLink from 'next/link';
-import { usePathname } from 'next/navigation';
-import { PageShell, Navbar, NavItem, Button, cn } from '../../pl-design-system/components';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { PageShell, Navbar, NavItem, Button, Icon, cn, type IconName } from '../../pl-design-system/components';
+import { SubmitProvider, useSubmit } from '@/components/SubmitModal';
+import { apiGet } from '@/components/shared';
 
-/* pending Camille review */
-const RAIL_ITEMS = [
-  { href: '/', label: 'Browse' },
-  { href: '/#collections', label: 'Collections' },
-  { href: '/requests', label: 'Requests' },
-  { href: '/submit', label: 'Share something' },
-];
+interface Stats {
+  everything: number;
+  collections: number;
+  requests: number;
+  mine: number;
+  useful: number;
+}
 
-const ADMIN_ITEM = { href: '/admin', label: 'Admin' };
+type RailKey = 'everything' | 'collections' | 'requests' | 'mine' | 'useful' | 'admin' | null;
 
-function LeftRail({ extra }: { extra?: ReactNode }) {
+function useRailKey(selfId: string | null): RailKey {
   const pathname = usePathname();
-  // Admin nav only for admins (L3) — the admin routes 404 everyone else anyway.
-  const [showAdmin, setShowAdmin] = useState(false);
-  useEffect(() => {
-    fetch('/api/me')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setShowAdmin(Boolean(d?.member?.isAdmin)))
-      .catch(() => {});
-  }, []);
-  const items = showAdmin ? [...RAIL_ITEMS, ADMIN_ITEM] : RAIL_ITEMS;
+  const params = useSearchParams();
+  if (pathname.startsWith('/collections')) return 'collections';
+  if (pathname.startsWith('/admin')) return 'admin';
+  if (selfId && pathname === `/members/${selfId}`) return 'mine';
+  if (pathname === '/') {
+    if (params.get('useful') === '1') return 'useful';
+    if (params.get('type') === 'request') return 'requests';
+    return 'everything';
+  }
+  return null;
+}
+
+function RailButton({
+  active,
+  icon,
+  label,
+  count,
+  onClick,
+}: {
+  active: boolean;
+  icon: IconName;
+  label: string;
+  count: number | null;
+  onClick: () => void;
+}) {
   return (
-    <div className="flex flex-col gap-6">
-      <nav aria-label="Knowledge Base sections" className="rounded-lg border border-border bg-surface p-2 shadow-card">
-        <ul className="flex flex-col gap-1">
-          {items.map((item) => {
-            const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href.replace(/#.*$/, '')) && item.href !== '/#collections';
-            return (
-              <li key={item.href}>
-                <NextLink
-                  href={item.href}
-                  className={cn(
-                    'block rounded-md px-3 py-2 text-base tracking-body',
-                    active ? 'bg-selected text-brand font-medium' : 'text-secondary hover:bg-surface-sunken'
-                  )}
-                  aria-current={active ? 'page' : undefined}
-                >
-                  {item.label}
-                </NextLink>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-      {extra}
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-10 border-none px-3',
+        'text-base font-medium tracking-body transition-colors',
+        active ? 'bg-selected text-brand' : 'bg-transparent text-secondary hover:bg-brand-faint'
+      )}
+    >
+      <span className="flex items-center gap-2.5">
+        <Icon name={icon} size={16} />
+        {label}
+      </span>
+      {count !== null && (
+        <span className={cn('text-xs tracking-body', active ? 'text-brand' : 'text-tertiary')}>{count}</span>
+      )}
+    </button>
   );
 }
 
-export function AppShell({ children, railExtra }: { children: ReactNode; railExtra?: ReactNode }) {
+function LeftRail() {
+  const router = useRouter();
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [selfId, setSelfId] = useState<string | null>(null);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const active = useRailKey(selfId);
+
+  useEffect(() => {
+    apiGet<Stats>('/api/stats').then(setStats);
+    apiGet<{ member?: { id?: string; isAdmin?: boolean } | null }>('/api/me').then((d) => {
+      setSelfId(d?.member?.id ?? null);
+      setShowAdmin(Boolean(d?.member?.isAdmin));
+    });
+  }, []);
+
   return (
-    <>
-      <PageShell
-        navbar={
-          <Navbar
-            label="PLAAbook"
-            logo={
-              <NextLink href="/" className="flex items-center gap-2 no-underline">
-                <span className="flex size-8 items-center justify-center rounded-md bg-brand text-sm font-semibold text-inverse">
-                  PL
-                </span>
-                {/* pending Camille review */}
-                <span className="text-lg font-semibold tracking-title text-primary">
-                  PLAAbook — Knowledge Base
-                </span>
-              </NextLink>
-            }
-            actions={
-              <NextLink href="/submit">
-                {/* pending Camille review */}
-                <Button variant="primary" size="sm">
-                  Share something
-                </Button>
-              </NextLink>
-            }
-          >
-            <NavItem href="/">Browse</NavItem>
-            <NavItem href="/requests">Requests</NavItem>
-          </Navbar>
-        }
-        sidebar={<LeftRail extra={railExtra} />}
-      >
-        {children}
-        <footer className="mt-10 border-t border-border pt-4 pb-2">
-          {/* pending Camille review */}
-          <p className="text-sm text-tertiary tracking-body">
-            PLAAbook — a members-only knowledge base for the PL Network. Shared resources are
-            visible to the audience chosen at submission.
-          </p>
-        </footer>
-      </PageShell>
-    </>
+    <nav aria-label="Knowledge Base sections" className="flex flex-col gap-1">
+      <RailButton
+        active={active === 'everything'}
+        icon="cube"
+        label="Everything"
+        count={stats?.everything ?? null}
+        onClick={() => router.push('/')}
+      />
+      <RailButton
+        active={active === 'collections'}
+        icon="diamond"
+        label="Collections"
+        count={stats?.collections ?? null}
+        onClick={() => router.push('/collections')}
+      />
+      <RailButton
+        active={active === 'requests'}
+        icon="search"
+        label="Requests"
+        count={stats?.requests ?? null}
+        onClick={() => router.push('/?type=request')}
+      />
+      <div className="mx-3 my-3.5 h-px bg-border" />
+      {/* pending Camille review */}
+      <div className="px-3 pb-2 text-[11px] font-semibold leading-4 text-tertiary tracking-body">Yours</div>
+      <RailButton
+        active={active === 'mine'}
+        icon="user-circle"
+        label="Shared by you"
+        count={stats?.mine ?? null}
+        onClick={() => selfId && router.push(`/members/${selfId}`)}
+      />
+      <RailButton
+        active={active === 'useful'}
+        icon="arrow-fat-up"
+        label="Found useful"
+        count={stats?.useful ?? null}
+        onClick={() => router.push('/?useful=1')}
+      />
+      {showAdmin && (
+        <>
+          <div className="mx-3 my-3.5 h-px bg-border" />
+          <RailButton active={active === 'admin'} icon="grid" label="Admin" count={null} onClick={() => router.push('/admin')} />
+        </>
+      )}
+    </nav>
+  );
+}
+
+function ShareButton() {
+  const { open } = useSubmit();
+  return (
+    /* pending Camille review */
+    <Button variant="primary" size="sm" iconStart={<Icon name="plus" size={14} />} onClick={() => open()}>
+      Share something
+    </Button>
+  );
+}
+
+function ShellInner({ children }: { children: ReactNode }) {
+  return (
+    <PageShell
+      navbar={
+        <Navbar
+          label="PLAAbook"
+          logo={
+            <NextLink href="/" className="flex items-center gap-2 no-underline">
+              <span className="flex size-8 items-center justify-center rounded-md bg-brand text-sm font-semibold text-inverse">
+                PL
+              </span>
+              {/* pending Camille review */}
+              <span className="text-lg font-semibold tracking-title text-primary">PLAAbook</span>
+            </NextLink>
+          }
+          actions={<ShareButton />}
+        >
+          <NavItem href="/">Knowledge Base</NavItem>
+        </Navbar>
+      }
+      sidebar={<LeftRail />}
+    >
+      {children}
+    </PageShell>
+  );
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <SubmitProvider>
+      <Suspense>
+        <ShellInner>{children}</ShellInner>
+      </Suspense>
+    </SubmitProvider>
   );
 }

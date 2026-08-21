@@ -5,3 +5,5 @@ node_modules/
 *.log
 .DS_Store
 app/data/
+design-reference/
+.pi-glla/
