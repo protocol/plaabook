@@ -87,18 +87,47 @@ const SEED = [
 const SEED_MEMBER = 'wg-seed';
 const SEED_NAME = 'PLAA Working Group';
 
+// Canonical URL hash for dedupe (F-1 AC-1.5) — mirrors src/lib/urls.ts. Keep in sync.
+import { createHash } from 'node:crypto';
+function canonicalUrlHash(input) {
+  if (!input) return null;
+  let url;
+  try {
+    url = new URL(input.trim());
+  } catch {
+    return null;
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+  url.hostname = url.hostname.toLowerCase();
+  url.hash = '';
+  const kept = [...url.searchParams.entries()]
+    .filter(([k]) => !k.toLowerCase().startsWith('utm_'))
+    .sort(([a], [b]) => a.localeCompare(b));
+  url.search = '';
+  for (const [k, v] of kept) url.searchParams.append(k, v);
+  const out = url.toString().replace(/\/(\?|#|$)/, '$1');
+  return createHash('sha256').update(out).digest('hex');
+}
+
 let inserted = 0;
 for (const [type, title, url, why, tagSlugs, collectionSlug] of SEED) {
   const existing = await client.query('SELECT id FROM resources WHERE title = $1 AND submitter_member_id = $2', [title, SEED_MEMBER]);
   let id = existing.rows[0]?.id;
+  const urlHash = canonicalUrlHash(url);
   if (!id) {
     const res = await client.query(
-      `INSERT INTO resources (type, title, why, url, submitter_member_id, submitter_display_name, visibility)
-       VALUES ($1, $2, $3, $4, $5, $6, 'pl_infra') RETURNING id`,
-      [type, title, why, url, SEED_MEMBER, SEED_NAME]
+      `INSERT INTO resources (type, title, why, url, canonical_url_hash, submitter_member_id, submitter_display_name, visibility)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'pl_infra') RETURNING id`,
+      [type, title, why, url, urlHash, SEED_MEMBER, SEED_NAME]
     );
     id = res.rows[0].id;
     inserted++;
+  } else if (urlHash) {
+    // Backfill for rows seeded before hashes existed.
+    await client.query(
+      'UPDATE resources SET canonical_url_hash = $1 WHERE id = $2 AND canonical_url_hash IS NULL',
+      [urlHash, id]
+    );
   }
   for (const slug of tagSlugs) {
     await client.query(
