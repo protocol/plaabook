@@ -38,6 +38,7 @@ interface SubmitInput {
   url: string | null;
   visibility: VisibilityScope;
   tags: string[];
+  collection: string | null;
   confidentialityAck: boolean;
   file: File | null;
 }
@@ -90,8 +91,10 @@ async function readSubmitInput(req: Request): Promise<SubmitInput | Response> {
   const url = typeof raw.url === 'string' && raw.url.trim() ? raw.url.trim() : null;
   const title = typeof raw.title === 'string' ? raw.title.trim() : '';
   const confidentialityAck = raw.confidentialityAck === true || raw.confidentialityAck === 'true';
+  const collection =
+    typeof raw.collection === 'string' && raw.collection.trim() ? raw.collection.trim() : null;
 
-  return { type, title, why, url, visibility, tags, confidentialityAck, file };
+  return { type, title, why, url, visibility, tags, collection, confidentialityAck, file };
 }
 
 export async function POST(req: Request): Promise<Response> {
@@ -101,7 +104,7 @@ export async function POST(req: Request): Promise<Response> {
   const input = await readSubmitInput(req);
   if (input instanceof Response) return input;
 
-  const { type, why, url, visibility, tags, confidentialityAck, file } = input;
+  const { type, why, url, visibility, tags, collection, confidentialityAck, file } = input;
   let { title } = input;
 
   if (URL_TYPES.includes(type) && !url) return bad('A URL is required for this type.');
@@ -171,6 +174,19 @@ export async function POST(req: Request): Promise<Response> {
     tagIds = rows.map((r) => r.id);
   }
 
+  // Validate the chosen collection. Rule-populated collections (open requests)
+  // define their own membership — they are not hand-addable.
+  let collectionId: string | null = null;
+  if (collection) {
+    const { rows } = await query<{ id: string }>(
+      'SELECT id FROM collections WHERE slug = $1 AND auto_populate_rule IS NULL',
+      [collection]
+    );
+    /* pending Camille review */
+    if (rows.length === 0) return bad('That collection isn\u2019t one you can add to.');
+    collectionId = rows[0].id;
+  }
+
   const resourceId = await withTransaction(async (client) => {
     const { rows } = await client.query<{ id: string }>(
       `INSERT INTO resources
@@ -192,6 +208,12 @@ export async function POST(req: Request): Promise<Response> {
 
     for (const tagId of tagIds) {
       await client.query('INSERT INTO resource_tags (resource_id, tag_id) VALUES ($1, $2)', [id, tagId]);
+    }
+    if (collectionId) {
+      await client.query(
+        'INSERT INTO collection_resources (collection_id, resource_id) VALUES ($1, $2)',
+        [collectionId, id]
+      );
     }
     if (fileBuffer) {
       await client.query('INSERT INTO resource_files (resource_id, data) VALUES ($1, $2)', [id, fileBuffer]);

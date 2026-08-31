@@ -91,6 +91,44 @@ describe('POST /api/resources — F-1 submit', () => {
     expect(res.status).toBe(400);
   });
 
+  it('submitting with a collection slug joins that collection immediately', async () => {
+    const { rows: cols } = await pool.query(
+      'SELECT id, slug FROM collections WHERE auto_populate_rule IS NULL LIMIT 1'
+    );
+    if (cols.length === 0) return; // unseeded DB — nothing to assert against
+
+    const res = await POST(
+      jsonRequest(URL_BASE, 'POST', {
+        type: 'newsletter',
+        title: 'Test newsletter in a collection',
+        why: 'Checking collection membership on submit',
+        url: 'https://example.com/test-submit-collection',
+        collection: cols[0].slug,
+      })
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json();
+
+    const { rows } = await pool.query(
+      'SELECT 1 FROM collection_resources WHERE resource_id = $1 AND collection_id = $2',
+      [body.id, cols[0].id]
+    );
+    expect(rows).toHaveLength(1);
+  });
+
+  it('rejects an unknown or rule-populated collection with 400', async () => {
+    const res = await POST(
+      jsonRequest(URL_BASE, 'POST', {
+        type: 'link',
+        title: 'Bad collection',
+        why: 'Should not be accepted',
+        url: 'https://example.com/test-bad-collection',
+        collection: 'no-such-collection',
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
   it('request type emits NO contribution event (F-5: fulfilment credits, not asking)', async () => {
     const res = await POST(
       jsonRequest(URL_BASE, 'POST', {

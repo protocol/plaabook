@@ -23,6 +23,7 @@ import {
   Alert,
   Avatar,
   Icon,
+  Select,
   Tag,
   cn,
 } from '../../pl-design-system/components';
@@ -33,6 +34,7 @@ import {
   normalizeList,
   TYPE_META,
   fmtWhen,
+  type CollectionRow,
   type TagRow,
   type TypeKey,
 } from '@/components/shared';
@@ -76,6 +78,7 @@ interface SubmitState {
   why: string;
   ask: string;
   tags: string[];
+  collection: string;
   ack: boolean;
   file: File | null;
   fetching: boolean;
@@ -97,6 +100,7 @@ const FRESH: SubmitState = {
   why: '',
   ask: '',
   tags: [],
+  collection: '',
   ack: false,
   file: null,
   fetching: false,
@@ -144,6 +148,7 @@ function SubmitModalInner({
   const [s, setS] = useState<SubmitState>(FRESH);
   const [tick, setTick] = useState(0);
   const [tags, setTags] = useState<TagRow[]>([]);
+  const [collections, setCollections] = useState<CollectionRow[]>([]);
   const [nudgeCopy, setNudgeCopy] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [dupOverride, setDupOverride] = useState(false);
@@ -173,6 +178,7 @@ function SubmitModalInner({
               why: d.why ?? '',
               ask: d.ask ?? '',
               tags: Array.isArray(d.tags) ? d.tags : [],
+              collection: d.collection ?? '',
             };
           }
         }
@@ -190,12 +196,20 @@ function SubmitModalInner({
     try {
       localStorage.setItem(
         DRAFT_KEY,
-        JSON.stringify({ type: s.type, url: s.url, title: s.title, why: s.why, ask: s.ask, tags: s.tags })
+        JSON.stringify({
+          type: s.type,
+          url: s.url,
+          title: s.title,
+          why: s.why,
+          ask: s.ask,
+          tags: s.tags,
+          collection: s.collection,
+        })
       );
     } catch {
       /* best-effort */
     }
-  }, [s.step, s.type, s.url, s.title, s.why, s.ask, s.tags]);
+  }, [s.step, s.type, s.url, s.title, s.why, s.ask, s.tags, s.collection]);
 
   // Live timer while composing.
   useEffect(() => {
@@ -206,6 +220,10 @@ function SubmitModalInner({
 
   useEffect(() => {
     apiGet<unknown>('/api/tags').then((d) => setTags(normalizeList<TagRow>(d).items));
+    // Rule-populated collections manage their own membership — not offered here.
+    apiGet<unknown>('/api/collections').then((d) =>
+      setCollections(normalizeList<CollectionRow>(d).items.filter((c) => !c.autoPopulated))
+    );
   }, []);
 
   const needsUpload = s.type === 'file' || s.type === 'skill';
@@ -310,6 +328,7 @@ function SubmitModalInner({
       form.set('why', s.why.trim());
       form.set('visibility', 'pl_infra');
       form.set('tags', JSON.stringify(s.tags));
+      if (s.collection) form.set('collection', s.collection);
       form.set('confidentialityAck', 'true');
       form.set('file', s.file);
       result = await apiSend<{ id?: string }>('/api/resources', 'POST', form);
@@ -322,6 +341,7 @@ function SubmitModalInner({
         url: s.url.trim() || undefined,
         visibility: 'pl_infra',
         tags: s.tags,
+        collection: s.collection || undefined,
         duplicate_override: dupOverride || undefined,
         fulfills_request_id: s.fulfills || undefined,
       });
@@ -635,6 +655,29 @@ function SubmitModalInner({
               </div>
             </div>
 
+            {!isReq && collections.length > 0 && (
+              <label className="flex flex-col gap-1.5">
+                {/* pending Camille review */}
+                <span className="text-base font-medium text-primary tracking-body">
+                  Add to a collection
+                </span>
+                <Select
+                  value={s.collection}
+                  onChange={(v) => patch({ collection: v })}
+                  placeholder="None"
+                  options={[
+                    /* pending Camille review */
+                    { value: '', label: 'None' },
+                    ...collections.map((c) => ({ value: c.slug, label: c.title })),
+                  ]}
+                />
+                {/* pending Camille review */}
+                <span className="text-xs text-tertiary tracking-body">
+                  Optional. It shows up there straight away.
+                </span>
+              </label>
+            )}
+
             {/* Phase 1: one fixed audience — the wider scope is not offered. */}
             <label className="flex flex-col gap-1.5">
               {/* pending Camille review */}
@@ -723,6 +766,10 @@ function SubmitModalInner({
               { label: 'Resource', value: isReq ? s.ask.slice(0, 62) : s.title || '—' },
               { label: 'Visible to', value: 'PL Infra' },
               { label: 'Tags', value: s.tags.length ? s.tags.map((x) => `#${x}`).join(' ') : '—' },
+              {
+                label: 'Collection',
+                value: collections.find((c) => c.slug === s.collection)?.title ?? '—',
+              },
               /* pending Camille review — never stronger than this (PRD §4.2) */
               { label: 'Status', value: 'Sent for review' },
             ].map((f) => (
