@@ -79,7 +79,7 @@ export async function requireMember(req: Request): Promise<Member | Response> {
 // Admins baked into the app (survive redeploys without any LabOS env config).
 // Add a member's opaque LabOS uid here to grant them the WG admin surface.
 const DEFAULT_ADMIN_MEMBER_IDS: string[] = [
-  // <owner-uid>  ← filled in after the first deploy reveals it (see [whoami] log)
+  'cmq8d7vhr00nlny4g33b74d9t', // owner / working-group admin
 ];
 
 export function isAdmin(memberId: string): boolean {

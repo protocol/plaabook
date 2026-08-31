@@ -130,16 +130,6 @@ function LeftRail() {
           <RailButton active={active === 'admin'} icon="grid" label="Admin" count={null} onClick={() => router.push('/admin')} />
         </>
       )}
-      {/* TEMP admin-bootstrap helper — remove once the owner is added to DEFAULT_ADMIN_MEMBER_IDS. */}
-      {selfId && (
-        <>
-          <div className="mx-3 my-3.5 h-px bg-border" />
-          <div className="px-3 pb-2 text-[11px] leading-4 text-tertiary tracking-body">
-            Member ID (setup)
-            <span className="mt-0.5 block break-all font-mono text-primary select-all">{selfId}</span>
-          </div>
-        </>
-      )}
     </nav>
   );
 }
