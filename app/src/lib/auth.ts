@@ -49,9 +49,6 @@ export async function getMember(req: Request): Promise<Member | null> {
       const m = body.member;
       if (m?.uid) {
         member = { id: m.uid, displayName: m.name || 'Member', avatarUrl: m.image || null };
-        // TEMP[whoami]: reveals the signed-in member's opaque uid in runtime logs
-        // so the owner can be added to DEFAULT_ADMIN_MEMBER_IDS. Remove after that.
-        console.log(`[whoami] member uid=${m.uid} name=${JSON.stringify(m.name || '')}`);
       }
     }
   } catch {
