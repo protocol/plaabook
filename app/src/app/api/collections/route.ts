@@ -1,9 +1,11 @@
 // F-2 Collections, with visibility-scoped resource counts. The
 // "Asked for, not yet found" collection auto-resolves open requests.
 
-import { requireMember, type Member } from '@/lib/auth';
+import { requireMember, isAdmin, type Member } from '@/lib/auth';
 import { visibleScopesFor, scopeFilterSql } from '@/lib/visibility';
-import { query } from '@/lib/db';
+import { query, pool } from '@/lib/db';
+import { writeAudit } from '@/lib/audit';
+import { slugify } from '@/lib/slug';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,4 +70,62 @@ export async function GET(req: Request): Promise<Response> {
       preview: c.preview,
     })),
   });
+}
+
+// Admin-only: create a hand-curated collection ("category"). Auto-populated
+// collections (open-requests) are seeded, never created here.
+export async function POST(req: Request): Promise<Response> {
+  const member = await requireMember(req);
+  if (member instanceof Response) return member;
+  if (!isAdmin((member as Member).id)) return Response.json({ error: 'Not found.' }, { status: 404 });
+
+  let body: { title?: unknown; description?: unknown };
+  try {
+    body = (await req.json()) as { title?: unknown; description?: unknown };
+  } catch {
+    return Response.json({ error: 'Invalid request body.' }, { status: 400 });
+  }
+
+  const title = typeof body.title === 'string' ? body.title.trim() : '';
+  if (!title) return Response.json({ error: 'A collection title is required.' }, { status: 400 });
+  const description = typeof body.description === 'string' && body.description.trim() ? body.description.trim() : null;
+
+  const slug = slugify(title);
+  if (!slug) return Response.json({ error: 'That title has no usable letters or numbers.' }, { status: 400 });
+
+  // New collections sort after everything that already exists.
+  const { rows } = await query<{ id: string; slug: string; title: string; description: string | null }>(
+    `INSERT INTO collections (slug, title, description, curator_member_id, sort_order)
+     SELECT $1, $2, $3, $4, COALESCE(MAX(sort_order), -1) + 1 FROM collections
+     ON CONFLICT (slug) DO NOTHING
+     RETURNING id, slug, title, description`,
+    [slug, title, description, (member as Member).id]
+  );
+  if (rows.length === 0) {
+    return Response.json({ error: 'A collection with that name already exists.' }, { status: 409 });
+  }
+
+  await writeAudit(pool, {
+    actorMemberId: (member as Member).id,
+    action: 'admin_create_collection',
+    entity: 'collection',
+    entityId: rows[0].id,
+    metadata: { slug },
+  });
+
+  return Response.json(
+    {
+      collection: {
+        id: rows[0].id,
+        slug: rows[0].slug,
+        title: rows[0].title,
+        description: rows[0].description,
+        autoPopulated: false,
+        resourceCount: 0,
+        curatorName: (member as Member).displayName,
+        preview: [],
+      },
+    },
+    { status: 201 }
+  );
 }

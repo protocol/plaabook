@@ -49,6 +49,9 @@ export async function getMember(req: Request): Promise<Member | null> {
       const m = body.member;
       if (m?.uid) {
         member = { id: m.uid, displayName: m.name || 'Member', avatarUrl: m.image || null };
+        // TEMP[whoami]: reveals the signed-in member's opaque uid in runtime logs
+        // so the owner can be added to DEFAULT_ADMIN_MEMBER_IDS. Remove after that.
+        console.log(`[whoami] member uid=${m.uid} name=${JSON.stringify(m.name || '')}`);
       }
     }
   } catch {
@@ -76,10 +79,16 @@ export async function requireMember(req: Request): Promise<Member | Response> {
   return member;
 }
 
+// Admins baked into the app (survive redeploys without any LabOS env config).
+// Add a member's opaque LabOS uid here to grant them the WG admin surface.
+const DEFAULT_ADMIN_MEMBER_IDS: string[] = [
+  // <owner-uid>  ← filled in after the first deploy reveals it (see [whoami] log)
+];
+
 export function isAdmin(memberId: string): boolean {
-  const ids = (process.env.ADMIN_MEMBER_IDS || '')
+  const envIds = (process.env.ADMIN_MEMBER_IDS || '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-  return ids.includes(memberId);
+  return DEFAULT_ADMIN_MEMBER_IDS.includes(memberId) || envIds.includes(memberId);
 }
