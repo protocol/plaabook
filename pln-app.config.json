@@ -10,10 +10,10 @@
   "analyticsEndpoint": "https://api-directory.plnetwork.io/v1/ai-apps/track",
   "deployTokenHeader": "x-app-token",
   "kitVersion": "1.9",
-  "appId": "",
+  "appId": "plaabook",
   "appUid": "",
-  "appName": "",
-  "appDescription": "",
-  "database": null,
+  "appName": "PLAAbook",
+  "appDescription": "A members-only knowledge base for PL Infra — share links, files, and skills, and browse what the team has curated.",
+  "database": { "enabled": true, "type": "postgres" },
   "notes": "No token is stored here. At deploy time the agent runs the LabOS connect flow (see .claude/skills/deploy-to-labs) to get a short-lived deploy token. Set appId to a stable lowercase slug on first deploy and reuse it. appName/appDescription hold the member-APPROVED display metadata (see .claude/skills/app-metadata) — redeploys resend them verbatim. After the first deploy, save the response uid as appUid; metadataEndpoint, buildLogsEndpoint, runtimeLogsEndpoint, and appSettingsUrl are templates where {appUid} is replaced with it (appSettingsUrl opens the member-facing Deployment settings modal to update secrets & redeploy; the logs endpoints serve the build and runtime logs — see .claude/skills/app-logs). If the app needs runtime secrets, register it via draftEndpoint instead of deploying (see the deploy skill). database is null unless the member has opted into a PLN-provisioned database — once they do, set it to {\"enabled\":true,\"type\":\"postgres\"} and resend it verbatim on every deploy/draft call (see the deploy skill's \"Apps that want a provisioned database\"); a bring-your-own database is a regular runtime secret instead and never goes in this field. analyticsEndpoint takes usage events — baseline events (opened/error/closed) are wired into every app by default, custom events are added on request (no auth required, no deploy token) — see .claude/skills/app-analytics."
 }
