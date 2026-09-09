@@ -1,8 +1,8 @@
 'use client';
-// Baseline PLN app analytics — per ai-app-starter-kit-v1.9 app-analytics skill.
+// Baseline PLN app analytics — per ai-app-starter-kit-v1.11 app-analytics skill.
 // Fire-and-forget; a failure here must never affect the app.
 
-const ANALYTICS_URL = 'https://api-directory.plnetwork.io/v1/ai-apps/track';
+const ANALYTICS_URL = 'https://api-directory.os.pl.xyz/v1/ai-apps/track';
 
 export function readAuthToken(): string | null {
   const match = document.cookie.match(/(?:^|;\s*)authToken=([^;]*)/);
@@ -34,12 +34,37 @@ export function trackEvent(name: string, properties: Record<string, unknown> = {
   }
 }
 
+// Route sync — the AI Apps dashboard mirrors the open page in its URL and tab
+// title (shareable deep links). Kit v1.11 requires this alongside the events.
+export function initRouteSync() {
+  if (window.parent === window) return;
+  let lastSent = '';
+  const send = () => {
+    const path = location.pathname + location.search + location.hash;
+    const title = document.title;
+    if (path + '\n' + title === lastSent) return;
+    lastSent = path + '\n' + title;
+    window.parent.postMessage({ type: 'pln-ai-app:route', path, title }, '*');
+  };
+  (['pushState', 'replaceState'] as const).forEach((method) => {
+    const original = history[method].bind(history);
+    history[method] = (...args: Parameters<History['pushState']>) => {
+      original(...args);
+      send();
+    };
+  });
+  window.addEventListener('popstate', send);
+  new MutationObserver(send).observe(document.head, { subtree: true, childList: true, characterData: true });
+  send();
+}
+
 let initialized = false;
 export function initAppAnalytics() {
   if (initialized) return;
   initialized = true;
   const openedAt = Date.now();
   trackEvent('opened');
+  initRouteSync();
 
   let errorCount = 0;
   const MAX_ERROR_EVENTS = 5;

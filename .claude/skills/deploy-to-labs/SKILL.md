@@ -142,7 +142,7 @@ connection string into the LabOS secrets page, same as an API key.
    status:
 
    ```json
-   { "uid": "cl…", "status": "READY", "url": "https://<appId>.deployment.plnetwork.io", "host": "...", "port": 31001 }
+   { "uid": "cl…", "status": "READY", "url": "https://<appId>.os.pl.xyz", "host": "...", "port": 31001 }
    ```
 
    Save the response's `uid` as `appUid` in `pln-app.config.json` (it addresses
@@ -179,18 +179,18 @@ connection string into the LabOS secrets page, same as an API key.
    redeploy involved. Don't re-offer it on later redeploys.
 
 8. **Verify the app is iframe-embeddable** (internal check — do not surface the URL
-   to the member). The dashboard shows it in an `<iframe>` from a sibling
-   `*.plnetwork.io` subdomain; check the live response headers:
+   to the member). The dashboard shows it in an `<iframe>` from the LabOS portal
+   origin `https://os.pl.xyz`; check the live response headers:
 
    ```bash
-   curl -sSI "https://<appId>.deployment.plnetwork.io/" | grep -iE 'x-frame-options|content-security-policy'
+   curl -sSI "https://<appId>.os.pl.xyz/" | grep -iE 'x-frame-options|content-security-policy'
    ```
 
    It must pass BOTH:
-   - **No `X-Frame-Options` header** (it can't allow a sibling subdomain; if present
+   - **No `X-Frame-Options` header** (it can't allow another origin; if present
      it blocks the embed).
    - If a `Content-Security-Policy` is present, its `frame-ancestors` must include
-     `https://*.plnetwork.io` (and must NOT be `'none'`).
+     `https://os.pl.xyz` (and must NOT be `'none'`).
 
    If either fails, the embed will show `refused to connect`. Fix the app's headers
    (see the framing rule in `AGENTS.md`) and redeploy before reporting success.
@@ -320,7 +320,7 @@ superuser rights. `CREATE TABLE`/`INSERT`/etc. work normally.
 
 ## Keep the deployment URL private
 This rule covers ONLY the deployed app's own address — the URL/host/port on
-`<appId>.deployment.plnetwork.io`. Do not print, link, or otherwise tell the member
+`<appId>.os.pl.xyz`. Do not print, link, or otherwise tell the member
 that URL, host, or port — in your messages, summaries, or saved files. The member
 opens their app through the PL Infra → AI Apps dashboard, which embeds it; they
 never need the raw URL. You may use the URL silently for the verification and
@@ -339,7 +339,7 @@ failure and blindly re-upload. Instead poll the app (internal check — don't sh
 URL with the member):
 
 ```bash
-curl -sS -m 20 -o /dev/null -w '%{http_code}\n' "https://<appId>.deployment.plnetwork.io/health"
+curl -sS -m 20 -o /dev/null -w '%{http_code}\n' "https://<appId>.os.pl.xyz/health"
 ```
 
 If it returns `200` within a minute or two, the deploy worked — proceed to the

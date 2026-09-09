@@ -15,7 +15,7 @@ to the PLN API as a Bearer token. No login UI of its own is needed.
 `memberContextEndpoint` in `pln-app.config.json`:
 
 ```
-GET https://api-directory.plnetwork.io/v1/ai-apps/me
+GET https://api-directory.os.pl.xyz/v1/ai-apps/me
 ```
 
 Call it from **browser code**, sending the `authToken` cookie value as the
@@ -26,7 +26,7 @@ the app's own origin, which always works. The config file is not shipped inside
 `app/`, so bake the URL into the frontend as a constant:
 
 ```js
-const MEMBER_CONTEXT_URL = 'https://api-directory.plnetwork.io/v1/ai-apps/me';
+const MEMBER_CONTEXT_URL = 'https://api-directory.os.pl.xyz/v1/ai-apps/me';
 
 // The cookie value is URL-encoded and JSON-quoted (e.g. %22eyJhbGci...%22).
 function readAuthToken() {

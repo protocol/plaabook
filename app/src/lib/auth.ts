@@ -1,7 +1,7 @@
 // Server-side member resolution against the LabOS member-context endpoint.
 // Safe fields only: id (opaque uid), displayName, avatarUrl. Never email.
 
-const MEMBER_CONTEXT_URL = 'https://api-directory.plnetwork.io/v1/ai-apps/me';
+const MEMBER_CONTEXT_URL = 'https://api-directory.os.pl.xyz/v1/ai-apps/me';
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const CACHE_MAX = 500; // ponytail: bounded Map cache; LRU if member count outgrows this
 
