@@ -1,10 +1,10 @@
-# TeamWork — PLAA Knowledge Base (PLAAbook)
+# TeamWork — PLAA Knowledge Base (PLaybook)
 > Single source of truth. Every agent updates this on start / complete / blocker.
 
 ## Project Status
 | Field | Value |
 |-------|-------|
-| PRD | `PRD_ PLAAbook — Knowledge Base & Resource Sharing.md` (project root) |
+| PRD | `PRD_ PLaybook — Knowledge Base & Resource Sharing.md` (project root) |
 | Starter kit read? | ✅ ai-app-starter-kit-v1.9 — contract recorded below |
 | Current Phase | 4 — Validation ✅ COMPLETE |
 | Compliance gate | Camille (member copy) · Javier (points linkage) |

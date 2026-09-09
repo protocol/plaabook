@@ -1,4 +1,4 @@
--- PLAAbook schema — verbatim from PRD §9 plus search_vector trigger.
+-- PLaybook schema — verbatim from PRD §9 plus search_vector trigger.
 -- Structured schema. Never spreadsheets.
 
 DO $$ BEGIN

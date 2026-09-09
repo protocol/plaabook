@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   /* pending Camille review */
-  title: 'PLAAbook — Knowledge Base',
+  title: 'PLaybook — Knowledge Base',
   description: 'Share, find, and request docs, Skills, and reading recommendations across the PL Network.',
 };
 

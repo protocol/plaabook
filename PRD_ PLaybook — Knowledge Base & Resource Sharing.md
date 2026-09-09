@@ -1,4 +1,4 @@
-# **PRD: PLAAbook**
+# **PRD: PLaybook**
 
 | Field | Value |
 | ----- | ----- |

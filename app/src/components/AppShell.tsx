@@ -149,14 +149,14 @@ function ShellInner({ children }: { children: ReactNode }) {
     <PageShell
       navbar={
         <Navbar
-          label="PLAAbook"
+          label="PLaybook"
           logo={
             <NextLink href="/" className="flex items-center gap-2 no-underline">
               <span className="flex size-8 items-center justify-center rounded-md bg-brand text-sm font-semibold text-inverse">
                 PL
               </span>
               {/* pending Camille review */}
-              <span className="text-lg font-semibold tracking-title text-primary">PLAAbook</span>
+              <span className="text-lg font-semibold tracking-title text-primary">PLaybook</span>
             </NextLink>
           }
           actions={<ShareButton />}

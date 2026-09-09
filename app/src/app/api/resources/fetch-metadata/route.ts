@@ -65,7 +65,7 @@ export async function POST(req: Request): Promise<Response> {
     const res = await fetch(normalized, {
       signal: controller.signal,
       redirect: 'follow',
-      headers: { 'User-Agent': 'PLAAbook-metadata/1.0', Accept: 'text/html' },
+      headers: { 'User-Agent': 'PLaybook-metadata/1.0', Accept: 'text/html' },
     });
     clearTimeout(timer);
     if (!res.ok || !res.body) return Response.json({ ok: false });

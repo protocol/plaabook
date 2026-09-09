@@ -1,5 +1,5 @@
 'use client';
-// F-2 index: PLAAbook header, Collections strip, toolbar, why-first rows.
+// F-2 index: PLaybook header, Collections strip, toolbar, why-first rows.
 // ?useful=1 scopes to the viewer's upvotes ("Found useful" rail item).
 
 import { Suspense, useEffect, useState } from 'react';
@@ -17,7 +17,7 @@ function IndexHeader() {
     <div className="flex items-end justify-between gap-6 pb-6 max-md:flex-col max-md:items-start">
       <div className="flex flex-col gap-2">
         {/* pending Camille review */}
-        <h1 className="m-0 text-[40px] font-medium leading-[48px] tracking-[-1.4px] text-primary">PLAAbook</h1>
+        <h1 className="m-0 text-[40px] font-medium leading-[48px] tracking-[-1.4px] text-primary">PLaybook</h1>
         {/* pending Camille review */}
         <p className="m-0 max-w-[620px] text-[15px] leading-6 text-secondary tracking-body [text-wrap:pretty]">
           What PL Infra members have actually found useful — docs, Skills, newsletters, and people worth

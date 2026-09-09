@@ -1,4 +1,4 @@
-# PLAAbook — Knowledge Base & Resource Sharing
+# PLaybook — Knowledge Base & Resource Sharing
 
 A members-only knowledge base for the Protocol Labs Network: share, find, and
 request docs, Claude/Hermes Skills, newsletters, and creators worth following —
@@ -7,7 +7,7 @@ in under a minute, with sharing automatically counted as a PLAA contribution
 
 Built on the [PLN AI Apps Starter Kit](https://github.com/protocol) (v1.9) with
 the PL Design System, for deployment to LabOS. See the full product spec in
-[`PRD_ PLAAbook — Knowledge Base & Resource Sharing.md`](<PRD_ PLAAbook — Knowledge Base & Resource Sharing.md>).
+[`PRD_ PLaybook — Knowledge Base & Resource Sharing.md`](<PRD_ PLaybook — Knowledge Base & Resource Sharing.md>).
 
 ## Features
 
@@ -146,7 +146,7 @@ app/                  The deployable application (self-contained)
   tests/              unit/ · integration/ · compliance/
   pl-design-system/   Vendored PL Design System (Tailwind v4)
 TeamWork.md           Build coordination log, contracts, and guardrails
-PRD_ PLAAbook….md     Full product requirements document
+PRD_ PLaybook….md     Full product requirements document
 ```
 
 ## Status / open items

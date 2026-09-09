@@ -12,7 +12,7 @@
   "kitVersion": "1.11",
   "appId": "plaabook",
   "appUid": "",
-  "appName": "PLAAbook",
+  "appName": "PLaybook",
   "appDescription": "A members-only knowledge base for PL Infra — share links, files, and skills, and browse what the team has curated.",
   "database": {
     "enabled": true,
