@@ -44,7 +44,7 @@ export function initRouteSync() {
     const title = document.title;
     if (path + '\n' + title === lastSent) return;
     lastSent = path + '\n' + title;
-    window.parent.postMessage({ type: 'pln-ai-app:route', path, title }, '*');
+    window.parent.postMessage({ type: 'pln-ai-app:route', path, title }, 'https://os.pl.xyz');
   };
   (['pushState', 'replaceState'] as const).forEach((method) => {
     const original = history[method].bind(history);
