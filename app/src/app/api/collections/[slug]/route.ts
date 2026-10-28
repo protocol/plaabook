@@ -9,7 +9,8 @@ import { writeAudit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
-export async function DELETE(req: Request, { params }: { params: { slug: string } }): Promise<Response> {
+export async function DELETE(req: Request, props: { params: Promise<{ slug: string }> }): Promise<Response> {
+  const params = await props.params;
   const member = await requireMember(req);
   if (member instanceof Response) return member;
   if (!isAdmin(member.id)) return Response.json({ error: 'Not found.' }, { status: 404 });

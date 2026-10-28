@@ -49,13 +49,15 @@ async function toggle(id: string, memberId: string, add: boolean): Promise<Respo
   return Response.json({ upvoteCount, viewerHasUpvoted: add });
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const resolved = await resolveInScope(req, params.id);
   if (resolved instanceof Response) return resolved;
   return toggle(params.id, resolved.memberId, true);
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const resolved = await resolveInScope(req, params.id);
   if (resolved instanceof Response) return resolved;
   return toggle(params.id, resolved.memberId, false);

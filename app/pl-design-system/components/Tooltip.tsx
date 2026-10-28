@@ -48,7 +48,7 @@ export interface TooltipProps {
   /** Force-open, for documentation and visual review. */
   open?: boolean;
   /** The trigger. Must accept a ref and spread props — a DOM element or `IconButton`. */
-  children: ReactElement;
+  children: ReactElement<any>;
   className?: string;
 }
 
