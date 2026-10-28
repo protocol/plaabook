@@ -252,7 +252,9 @@ export function Tab({ value, children, icon, badge, disabled, className }: TabPr
          moves past the whole strip rather than through every item. */
       tabIndex={selected ? 0 : -1}
       disabled={disabled}
-      ref={(el) => ctx.register(value, disabled ? null : el)}
+      ref={el => {
+        ctx.register(value, disabled ? null : el);
+      }}
       onClick={() => ctx.setValue(value)}
       className={cn(ITEM_BASE, selected ? style.on : style.idle, className)}
     >
