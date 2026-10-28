@@ -1,4 +1,4 @@
-# PLaybook — Knowledge Base & Resource Sharing
+# PLaybook — Knowledge Base & Resource Sharing (DEPRECIATED)
 
 A members-only knowledge base for the Protocol Labs Network: share, find, and
 request docs, Claude/Hermes Skills, newsletters, and creators worth following —
