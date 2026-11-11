@@ -2,6 +2,9 @@
   "name": "plaabook",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "next dev -p ${PORT:-3000} -H 0.0.0.0",
     "build": "next build",
