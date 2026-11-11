@@ -36,7 +36,7 @@ describe('F-5 fulfilment audience coverage (M1)', () => {
   it('rejects fulfilling a plaa_members request with a pl_infra-only resource', async () => {
     const res = await fulfillPOST(
       jsonRequest(`http://test.local/api/requests/${requestId}/fulfill`, 'POST', { resourceId: narrowResourceId }),
-      { params: { id: requestId } }
+      { params: Promise.resolve({ id: requestId }) }
     );
     expect(res.status).toBe(400);
     const { rows } = await pool.query(`SELECT request_status FROM resources WHERE id = $1`, [requestId]);
@@ -46,7 +46,7 @@ describe('F-5 fulfilment audience coverage (M1)', () => {
   it('accepts a plaa_members resource for a plaa_members request', async () => {
     const res = await fulfillPOST(
       jsonRequest(`http://test.local/api/requests/${requestId}/fulfill`, 'POST', { resourceId: wideResourceId }),
-      { params: { id: requestId } }
+      { params: Promise.resolve({ id: requestId }) }
     );
     expect(res.status).toBe(200);
     const { rows } = await pool.query(`SELECT request_status, fulfilled_by_resource_id FROM resources WHERE id = $1`, [requestId]);

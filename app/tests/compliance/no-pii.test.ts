@@ -46,7 +46,7 @@ describe('compliance — no PII keys in payloads', () => {
 
   it('detail payload has no email/phone keys', async () => {
     const res = await detailGET(new Request(`http://test.local/api/resources/${resourceId}`), {
-      params: { id: resourceId },
+      params: Promise.resolve({ id: resourceId }),
     });
     expect(res.status).toBe(200);
     const keys = collectKeys(await res.json());

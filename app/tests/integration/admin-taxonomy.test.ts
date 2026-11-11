@@ -67,7 +67,7 @@ describe('admin taxonomy — tags', () => {
     asAdmin();
     await createTag(jsonRequest(TAGS_URL, 'POST', { label: 'Test Taxonomy Tag' }));
     const res = await deleteTag(jsonRequest(`${TAGS_URL}/test-taxonomy-tag`, 'DELETE'), {
-      params: { slug: 'test-taxonomy-tag' },
+      params: Promise.resolve({ slug: 'test-taxonomy-tag' }),
     });
     expect(res.status).toBe(200);
     const { rows } = await pool.query('SELECT 1 FROM tags WHERE slug = $1', ['test-taxonomy-tag']);
@@ -102,7 +102,7 @@ describe('admin taxonomy — collections', () => {
     asAdmin();
     await createCollection(jsonRequest(COLS_URL, 'POST', { title: 'Test Taxonomy Collection' }));
     const res = await deleteCollection(jsonRequest(`${COLS_URL}/test-taxonomy-collection`, 'DELETE'), {
-      params: { slug: 'test-taxonomy-collection' },
+      params: Promise.resolve({ slug: 'test-taxonomy-collection' }),
     });
     expect(res.status).toBe(200);
     const { rows } = await pool.query('SELECT 1 FROM collections WHERE slug = $1', ['test-taxonomy-collection']);
@@ -118,7 +118,7 @@ describe('admin taxonomy — collections', () => {
       ['test-taxonomy-collection', 'Auto Bucket', JSON.stringify({ type: 'open_requests' })]
     );
     const res = await deleteCollection(jsonRequest(`${COLS_URL}/test-taxonomy-collection`, 'DELETE'), {
-      params: { slug: 'test-taxonomy-collection' },
+      params: Promise.resolve({ slug: 'test-taxonomy-collection' }),
     });
     expect(res.status).toBe(400);
     const { rows } = await pool.query('SELECT 1 FROM collections WHERE slug = $1', ['test-taxonomy-collection']);

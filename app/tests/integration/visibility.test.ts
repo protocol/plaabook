@@ -43,7 +43,7 @@ describe('F-4 visibility enforcement (server-side, raw payload)', () => {
       [outOfScopeId]
     );
     const res = await detailGET(new Request(`http://test.local/api/resources/${outOfScopeId}`), {
-      params: { id: outOfScopeId },
+      params: Promise.resolve({ id: outOfScopeId }),
     });
     expect(res.status).toBe(404);
     const after = await pool.query(

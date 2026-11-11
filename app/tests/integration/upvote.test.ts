@@ -25,7 +25,7 @@ afterAll(async () => {
 });
 
 function ctx() {
-  return { params: { id: resourceId } };
+  return { params: Promise.resolve({ id: resourceId }) };
 }
 
 describe('F-3 upvote toggle', () => {

@@ -8,7 +8,8 @@ import { query } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const member = await requireMember(req);
   if (member instanceof Response) return member;
 

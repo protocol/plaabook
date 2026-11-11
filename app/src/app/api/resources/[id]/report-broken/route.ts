@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const member = await requireMember(req);
   if (member instanceof Response) return member;
   if (!UUID_RE.test(params.id)) return notFoundWithAudit(member.id, null);

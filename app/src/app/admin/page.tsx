@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
   // getMember takes a Request; synthesize one carrying the incoming cookies.
-  const cookieHeader = cookies()
+  const cookieHeader = (await cookies())
     .getAll()
     .map((c) => `${c.name}=${encodeURIComponent(c.value)}`)
     .join('; ');

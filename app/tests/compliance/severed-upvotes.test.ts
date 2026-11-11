@@ -44,7 +44,7 @@ describe('compliance — upvotes severed from contributions', () => {
   it('upvoting produces zero contribution_events rows (db assertion)', async () => {
     await upvotePOST(
       jsonRequest(`http://test.local/api/resources/${resourceId}/upvote`, 'POST'),
-      { params: { id: resourceId } }
+      { params: Promise.resolve({ id: resourceId }) }
     );
     expect(await countEvents(resourceId)).toBe(0);
   });
